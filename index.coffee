@@ -5,7 +5,7 @@ blacklist = ["help", "add"]
 
 db_file = "kindergarten.db"
 db = new sqlite.Database db_file
-db.run "CREATE TABLE kindergarten (command TEXT(25) UNIQUE, text TEXT(25))",
+db.run "CREATE TABLE kindergarten (text TEXT(25), chat TEXT(25), command TEXT(25), UNIQUE(chat, command) ON CONFLICT REPLACE);",
 (exeErr) ->
   console.log exeErr if exeErr
 db.close()
@@ -13,7 +13,7 @@ db.close()
 tg = new Telegram(process.env.TELEGRAM_BOT_TOKEN)
 tg.on 'message', (msg) ->
   return unless msg.text
-  console.log msg.text
+  console.log msg.chat.id+": "+msg.text
   if msg.text.match(/^\/add.+/)
     [_, command, text] = msg.text.match(/^\/add\s(\w+?)\s(.+?)$/)
 
@@ -22,7 +22,8 @@ tg.on 'message', (msg) ->
       return
 
     db = new sqlite.Database db_file
-    db.run "INSERT OR REPLACE INTO kindergarten (command, text) VALUES ('"+command+"', '"+text+"')"
+    db.run "INSERT INTO kindergarten (chat, command, text) VALUES ('"+
+      msg.chat.id+"', '"+command+"', '"+text+"')"
     db.close()
     tg.sendMessage
       text: "New command '"+command+"' was added!"
@@ -32,7 +33,8 @@ tg.on 'message', (msg) ->
     [_, command] = msg.text.match(/^\/(\w+)$/)
     text = msg.text.replace('/','')
     db = new sqlite.Database db_file
-    db.each "SELECT text FROM kindergarten WHERE command LIKE '"+command+"' LIMIT 1",
+    db.each "SELECT text FROM kindergarten WHERE command LIKE '"+
+      command+"' AND chat LIKE '"+msg.chat.id+"' LIMIT 1",
     (exeErr, row) ->
       throw exeErr if exeErr
       tg.sendMessage
