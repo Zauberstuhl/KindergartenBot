@@ -1,6 +1,8 @@
 Telegram = require('telegram-bot')
 sqlite = require('sqlite3')
 
+blacklist = ["help", "add"]
+
 db_file = "kindergarten.db"
 db = new sqlite.Database db_file
 db.run "CREATE TABLE kindergarten (command TEXT(25) UNIQUE, text TEXT(25))",
@@ -14,6 +16,11 @@ tg.on 'message', (msg) ->
   console.log msg.text
   if msg.text.match(/^\/add.+/)
     [_, command, text] = msg.text.match(/^\/add\s(\w+?)\s(.+?)$/)
+
+    # blacklist
+    if command in blacklist
+      return
+
     db = new sqlite.Database db_file
     db.run "INSERT OR REPLACE INTO kindergarten (command, text) VALUES ('"+command+"', '"+text+"')"
     db.close()
