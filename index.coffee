@@ -5,7 +5,7 @@ blacklist = ["help", "add"]
 
 db_file = "kindergarten.db"
 db = new sqlite.Database db_file
-db.run "CREATE TABLE kindergarten (text TEXT(25), chat TEXT(25), command TEXT(25), UNIQUE(chat, command) ON CONFLICT REPLACE);",
+db.run "CREATE TABLE kindergarten (text TEXT(255), chat TEXT(25), command TEXT(25), UNIQUE(chat, command) ON CONFLICT REPLACE);",
 (exeErr) ->
   console.log exeErr if exeErr
 db.close()
