@@ -1,7 +1,7 @@
 Telegram = require('telegram-bot')
 sqlite = require('sqlite3')
 
-blacklist = ["help", "add"]
+blacklist = ["help", "add", "list"]
 
 db_file = "kindergarten.db"
 db = new sqlite.Database db_file
@@ -14,7 +14,7 @@ tg = new Telegram(process.env.TELEGRAM_BOT_TOKEN)
 tg.on 'message', (msg) ->
   return unless msg.text
   console.log msg.chat.id+": "+msg.text
-  if msg.text.match(/^\/add.+/)
+  if msg.text.match(/^\/add.+/i)
     [_, command, text] = msg.text.match(/^\/add\s(\w+?)\s(.+?)$/)
 
     # blacklist
@@ -29,6 +29,15 @@ tg.on 'message', (msg) ->
       text: "New command '"+command+"' was added!"
       reply_to_message_id: msg.message_id
       chat_id: msg.chat.id
+  else if msg.text.match(/^\/list/i)
+    db = new sqlite.Database db_file
+    db.each "SELECT command, text FROM kindergarten WHERE chat LIKE '"+msg.chat.id+"'",
+    (exeErr, row) ->
+      throw exeErr if exeErr
+      tg.sendMessage
+        text: row.command+": "+row.text
+        reply_to_message_id: msg.message_id
+        chat_id: msg.chat.id
   else if msg.text.match(/^\//)
     [_, command] = msg.text.match(/^\/(\w+)$/)
     text = msg.text.replace('/','')
