@@ -19,6 +19,10 @@ tg.on 'message', (msg) ->
 
     # blacklist
     if command in blacklist
+      tg.sendMessage
+        text: command+" is black-listed. Abort!"
+        reply_to_message_id: msg.message_id
+        chat_id: msg.chat.id
       return
 
     db = new sqlite.Database db_file
