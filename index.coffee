@@ -35,24 +35,17 @@ tg.on 'message', (msg) ->
     db.close()
     send "New command '"+command+"' was added!"
   else if msg.text.match(/^\/list/i)
-    page = 1
     offset = 0
     limit = 3 # TODO hard-coded
-
-    [_, input] = msg.text.match(/^\/list\s(\d+)$/)
-    if input?
-      page = input
-
-    offset = offset * (page - 1)
-    limit = limit * page
-
+    [_, page] = msg.text.match(/^\/list\s(\d+)$/) or [null, 1]
+    offset = (page * limit) - limit
+    send "Page "+page+". Increase with /list <number>"
     db = new sqlite.Database db_file
     db.each "SELECT command, text FROM kindergarten WHERE chat LIKE '"+
       msg.chat.id+"' LIMIT "+limit+" OFFSET "+offset,
     (exeErr, row) ->
       throw exeErr if exeErr
       send row.command+": "+row.text
-    send "Page "+page+". Increase with /list "+(page+1)
   else if msg.text.match(/^\//)
     [_, command] = msg.text.match(/^\/(\w+)$/)
     text = msg.text.replace('/','')
