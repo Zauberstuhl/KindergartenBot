@@ -20,7 +20,7 @@ tg.on 'message', (msg) ->
       reply_to_message_id: msg.message_id
       chat_id: msg.chat.id
 
-  if msg.text.match(/^\/help/i)
+  if msg.text.match(/^\/[help|start]/i)
     send "add <new command> <text> - Add a new command\n"+
       "list [<page number>] - List known commands\n"+
       "help - Help page"
