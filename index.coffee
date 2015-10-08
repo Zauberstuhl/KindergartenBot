@@ -33,6 +33,11 @@ tg.on 'message', (msg) ->
     if command in blacklist
       send command+" is black-listed. Abort!"
       return
+
+    # remove evil manu chars
+    command = command.replace /['"]/g, ""
+    text = text.replace /['"]/g, ""
+
     db = new sqlite.Database db_file
     db.run "INSERT INTO kindergarten (chat, command, text) VALUES ('"+
       msg.chat.id+"', '"+command+"', '"+text+"')"
