@@ -52,7 +52,8 @@ tg.on 'message', (msg) ->
       send row.command+": "+row.text
     db.close()
   else if msg.text.match(/^\/stats$/i)
-    db.each "SELECT count(command) FROM kindergarten WHERE chat LIKE '"+msg.chat.id+"'",
+    db = new sqlite.Database db_file
+    db.each "SELECT count(*) FROM kindergarten WHERE chat LIKE '"+msg.chat.id+"'",
     (exeErr, cnt) ->
       throw exeErr if exeErr
       send "There are/is "+cnt+" command(s) available!"
