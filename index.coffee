@@ -53,10 +53,11 @@ tg.on 'message', (msg) ->
     db.close()
   else if msg.text.match(/^\/stats$/i)
     db = new sqlite.Database db_file
-    db.each "SELECT count(*) FROM kindergarten WHERE chat LIKE '"+msg.chat.id+"'",
-    (exeErr, cnt) ->
+    db.each "SELECT count(*) as 'count' FROM kindergarten "+
+      "WHERE chat LIKE '"+msg.chat.id+"'",
+    (exeErr, row) ->
       throw exeErr if exeErr
-      send "There are/is "+cnt+" command(s) available!"
+      send "There are/is "+row.count+" command(s) available!"
     db.close()
   else if msg.text.match(/^\//)
     [_, command] = msg.text.match(/^\/(\w+)$/)
