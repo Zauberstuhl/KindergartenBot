@@ -65,6 +65,7 @@ tg.on 'message', (msg) ->
       throw exeErr if exeErr
       for v, cnt in vars.split /\s/
         text = text.replace("/#{cnt++}", v)
+        console.log v
         console.log "/#{cnt++} => #{text}"
       send text
     db.close()
