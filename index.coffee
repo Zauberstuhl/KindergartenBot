@@ -67,7 +67,7 @@ tg.on 'message', (msg) ->
       for v, cnt in vars
         if cnt == 0
           continue
-        text = text.replace("/#{cnt}", v)
+        text = text.replace("\/#{cnt}", v)
         console.log v
         console.log "/#{cnt} => #{text}"
       send text
