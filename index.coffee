@@ -67,6 +67,7 @@ tg.on 'message', (msg) ->
       cnt = 1
       for vars in commands.split /\s/
         text = text.replace("/#{cnt}", vars)
+        console.log "/#{cnt} => #{text}"
         cnt++
       send text
     db.close()
