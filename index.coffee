@@ -64,11 +64,9 @@ tg.on 'message', (msg) ->
       command+"' AND chat LIKE '"+msg.chat.id+"' LIMIT 1",
     (exeErr, row) ->
       throw exeErr if exeErr
-      cnt = 1
-      for vars in commands.split /\s/
-        text = text.replace("/#{cnt}", vars)
-        console.log "/#{cnt} => #{text}"
-        cnt++
+      for vars, cnt in commands.split /\s/
+        text = text.replace("/#{cnt++}", vars)
+        console.log "/#{cnt++} => #{text}"
       send text
     db.close()
 
