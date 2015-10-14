@@ -65,7 +65,7 @@ tg.on 'message', (msg) ->
     (exeErr, row) ->
       throw exeErr if exeErr
       cnt = 1
-      for vars in commands.split /\s/ ->
+      for vars in commands.split /\s/
         text = text.replace("/#{cnt}", vars)
         cnt++
       send text
