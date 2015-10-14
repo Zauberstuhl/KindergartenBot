@@ -56,7 +56,7 @@ tg.on 'message', (msg) ->
       throw exeErr if exeErr
       send row.command+": "+row.text
   else if msg.text.match(/^\//)
-    [_, command, vars] = msg.text.match(/^\/(\w+)\s*([\s\w]+?)$/)
+    [_, vars] = msg.text.match(/^\/([\w\s]+)$/)
     text = msg.text.replace('/','')
     db = new sqlite.Database db_file
     db.each "SELECT text FROM kindergarten WHERE command LIKE '"+
@@ -64,9 +64,12 @@ tg.on 'message', (msg) ->
     (exeErr, row) ->
       throw exeErr if exeErr
       for v, cnt in vars.split /\s/
-        text = text.replace("/#{cnt++}", v)
+        if cnt == 0
+          continue
+        text = text.replace("/#{cnt}", v)
         console.log v
-        console.log "/#{cnt++} => #{text}"
+        console.log "/#{cnt} => #{text}"
+
       send text
     db.close()
 
