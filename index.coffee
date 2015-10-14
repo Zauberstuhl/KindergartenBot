@@ -56,14 +56,14 @@ tg.on 'message', (msg) ->
       throw exeErr if exeErr
       send row.command+": "+row.text
   else if msg.text.match(/^\//)
-    [_, command] = msg.text.match(/^\/(\w+)$/)
+    [_, command, vars] = msg.text.match(/^\/(\w+)\s([\w]+)$/)
     text = msg.text.replace('/','')
     db = new sqlite.Database db_file
     db.each "SELECT text FROM kindergarten WHERE command LIKE '"+
       command+"' AND chat LIKE '"+msg.chat.id+"' LIMIT 1",
     (exeErr, row) ->
       throw exeErr if exeErr
-      send row.text
+      send row.text.replace('/1', vars)
     db.close()
 
 tg.start()
