@@ -1,7 +1,7 @@
 Telegram = require('telegram-bot')
 sqlite = require('sqlite3')
 
-blacklist = ["help", "add", "list"]
+blacklist = ["help", "add", "list", "stats"]
 
 db_file = "kindergarten.db"
 db = new sqlite.Database db_file
@@ -55,6 +55,15 @@ tg.on 'message', (msg) ->
     (exeErr, row) ->
       throw exeErr if exeErr
       send row.command+": "+row.text
+    db.close()
+  else if msg.text.match(/^\/stats$/i)
+    db = new sqlite.Database db_file
+    db.each "SELECT count(*) as 'count' FROM kindergarten "+
+      "WHERE chat LIKE '"+msg.chat.id+"'",
+    (exeErr, row) ->
+      throw exeErr if exeErr
+      send "There are/is "+row.count+" command(s) available!"
+    db.close()
   else if msg.text.match(/^\//)
     [_, command] = msg.text.match(/^\/(\w+)$/)
     text = msg.text.replace('/','')
