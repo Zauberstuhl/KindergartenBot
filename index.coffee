@@ -22,7 +22,7 @@ send = (cmd, text) ->
     .to(cmd.chat.id)
   bot.send(answer)
 
-bot.get /Hi|Hey|Hello|Yo/, (msg) ->
+bot.get /hi|hey|hallo|hello|yo/i, (msg) ->
   send msg, 'Hello, Sir'
 
 help = "add <new command> <text> - Add a new command\n"+
