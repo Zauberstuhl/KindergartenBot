@@ -1,4 +1,7 @@
-Telegram = require('telegram-bot')
+Bot = require('telegram-api')
+Message = require('telegram-api/types/Message')
+File = require('telegram-api/types/File')
+
 sqlite = require('sqlite3')
 
 blacklist = ["help", "add", "list", "stats"]
@@ -10,28 +13,36 @@ db.run "CREATE TABLE kindergarten (text TEXT(255), chat TEXT(25), command TEXT(2
   console.log exeErr if exeErr
 db.close()
 
-tg = new Telegram(process.env.TELEGRAM_BOT_TOKEN)
-tg.on 'message', (msg) ->
-  return unless msg.text
-  console.log msg.chat.id+": "+msg.text
-  send = (message) ->
-    tg.sendMessage
-      text: message
-      reply_to_message_id: msg.message_id
-      chat_id: msg.chat.id
+bot = new Bot({token: process.env.TELEGRAM_BOT_TOKEN})
+bot.start()
 
-  if msg.text.match(/^\/(help|start)/i)
-    send "add <new command> <text> - Add a new command\n"+
-      "list [<page number>] - List known commands\n"+
-      "help - Help page"
-  else if msg.text.match(/^\/add.+/i)
+send = (cmd, text) ->
+  answer = new Message()
+    .text(text)
+    .to(cmd.chat.id)
+  bot.send(answer)
+
+bot.get /Hi|Hey|Hello|Yo/, (msg) ->
+  send msg, 'Hello, Sir'
+
+help = "add <new command> <text> - Add a new command\n"+
+  "list [<page number>] - List known commands\n"+
+  "help - Help page"
+
+bot.command 'start', (msg) ->
+  send msg, help
+bot.command 'help', (msg) ->
+  send msg, help
+
+bot.command 'add', (msg) ->
+  if msg.text.match(/^\/add.+/i)
     [_, command, text] = msg.text.match(/^\/add\s(\w+?)\s(.+?)$/)
     # check on existence
     unless command? and text?
       return
     # blacklist
     if command in blacklist
-      send command+" is black-listed. Abort!"
+      send msg, command+" is black-listed. Abort!"
       return
 
     # remove evil manu chars
@@ -42,29 +53,35 @@ tg.on 'message', (msg) ->
     db.run "INSERT INTO kindergarten (chat, command, text) VALUES ('"+
       msg.chat.id+"', '"+command+"', '"+text+"')"
     db.close()
-    send "New command '"+command+"' was added!"
-  else if msg.text.match(/^\/list/i)
-    offset = 0
-    limit = 3 # TODO hard-coded
-    [_, page] = msg.text.match(/^\/list\s(\d+)$/) or [null, 1]
-    offset = (page * limit) - limit
-    send "Page "+page+". Increase with /list <number>"
-    db = new sqlite.Database db_file
-    db.each "SELECT command, text FROM kindergarten WHERE chat LIKE '"+
-      msg.chat.id+"' LIMIT "+limit+" OFFSET "+offset,
-    (exeErr, row) ->
-      throw exeErr if exeErr
-      send row.command+": "+row.text
-    db.close()
-  else if msg.text.match(/^\/stats$/i)
+    send msg, "New command '"+command+"' was added!"
+
+#bot.command 'list', (msg) ->
+#  if msg.text.match(/^\/list/i)
+#    offset = 0
+#    limit = 3 # TODO hard-coded
+#    [_, page] = msg.text.match(/^\/list\s(\d+)$/) or [null, 1]
+#    offset = (page * limit) - limit
+#    send msg, "Page "+page+". Increase with /list <number>"
+#    db = new sqlite.Database db_file
+#    db.each "SELECT command, text FROM kindergarten WHERE chat LIKE '"+
+#      msg.chat.id+"' LIMIT "+limit+" OFFSET "+offset,
+#    (exeErr, row) ->
+#      throw exeErr if exeErr
+#      send msg, row.command+": "+row.text
+#    db.close()
+
+bot.command 'stats', (msg) ->
+  if msg.text.match(/^\/stats$/i)
     db = new sqlite.Database db_file
     db.each "SELECT count(*) as 'count' FROM kindergarten "+
       "WHERE chat LIKE '"+msg.chat.id+"'",
     (exeErr, row) ->
       throw exeErr if exeErr
-      send "There are/is "+row.count+" command(s) available!"
+      send msg, "There are/is "+row.count+" command(s) available!"
     db.close()
-  else if msg.text.match(/^\//)
+
+bot.get /^\//, (msg) ->
+  if msg.text.match(/^\//)
     [_, command] = msg.text.match(/^\/(\w+)$/)
     text = msg.text.replace('/','')
     db = new sqlite.Database db_file
@@ -72,7 +89,5 @@ tg.on 'message', (msg) ->
       command+"' AND chat LIKE '"+msg.chat.id+"' LIMIT 1",
     (exeErr, row) ->
       throw exeErr if exeErr
-      send row.text
+      send msg, row.text
     db.close()
-
-tg.start()
