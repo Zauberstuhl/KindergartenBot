@@ -4,13 +4,13 @@ File = require('telegram-api/types/File')
 
 sqlite = require('sqlite3')
 
-blacklist = ["help", "add", "list", "stats"]
+blacklist = ["help", "add", "list", "stats", "random"]
 
 db_file = "kindergarten.db"
 db = new sqlite.Database db_file
-db.run "CREATE TABLE kindergarten (text TEXT(255), chat TEXT(25), command TEXT(25), UNIQUE(chat, command) ON CONFLICT REPLACE);",
-(exeErr) ->
-  console.log exeErr if exeErr
+db.run "CREATE TABLE kindergarten (text TEXT(255), chat TEXT(25), "+
+  "command TEXT(25), UNIQUE(chat, command) ON CONFLICT REPLACE);",
+  (exeErr) -> console.log exeErr if exeErr
 db.close()
 
 bot = new Bot({token: process.env.TELEGRAM_BOT_TOKEN})
@@ -22,7 +22,7 @@ send = (cmd, text) ->
     .to(cmd.chat.id)
   bot.send(answer)
 
-bot.get /hi|hey|hallo|hello|yo/i, (msg) ->
+bot.get /^(hi|hey|hallo|hello|yo)$/i, (msg) ->
   send msg, 'Hello, Sir'
 
 help = "add <new command> <text> - Add a new command\n"+
@@ -55,30 +55,26 @@ bot.command 'add', (msg) ->
     db.close()
     send msg, "New command '"+command+"' was added!"
 
-#bot.command 'list', (msg) ->
-#  if msg.text.match(/^\/list/i)
-#    offset = 0
-#    limit = 3 # TODO hard-coded
-#    [_, page] = msg.text.match(/^\/list\s(\d+)$/) or [null, 1]
-#    offset = (page * limit) - limit
-#    send msg, "Page "+page+". Increase with /list <number>"
-#    db = new sqlite.Database db_file
-#    db.each "SELECT command, text FROM kindergarten WHERE chat LIKE '"+
-#      msg.chat.id+"' LIMIT "+limit+" OFFSET "+offset,
-#    (exeErr, row) ->
-#      throw exeErr if exeErr
-#      send msg, row.command+": "+row.text
-#    db.close()
-
 bot.command 'stats', (msg) ->
   if msg.text.match(/^\/stats$/i)
     db = new sqlite.Database db_file
     db.each "SELECT count(*) as 'count' FROM kindergarten "+
       "WHERE chat LIKE '"+msg.chat.id+"'",
-    (exeErr, row) ->
-      throw exeErr if exeErr
-      send msg, "There are/is "+row.count+" command(s) available!"
+      (exeErr, row) ->
+        console.log exeErr if exeErr
+        send msg, "There are/is "+row.count+" command(s) available!"
     db.close()
+
+bot.get /^\/(rnd|random)$/i, (msg) ->
+  db = new sqlite.Database db_file
+  db.each "SELECT text FROM kindergarten "+
+    "WHERE chat LIKE '"+msg.chat.id+"' "+
+    "AND _ROWID_ >= (abs(random()) % (SELECT max(_ROWID_) FROM kindergarten)) "+
+    "LIMIT 1",
+    (exeErr, row) ->
+      console.log exeErr if exeErr
+      send msg, row.text
+  db.close()
 
 bot.get /^\//, (msg) ->
   if msg.text.match(/^\//)
@@ -87,7 +83,7 @@ bot.get /^\//, (msg) ->
     db = new sqlite.Database db_file
     db.each "SELECT text FROM kindergarten WHERE command LIKE '"+
       command+"' AND chat LIKE '"+msg.chat.id+"' LIMIT 1",
-    (exeErr, row) ->
-      throw exeErr if exeErr
-      send msg, row.text
+      (exeErr, row) ->
+        console.log exeErr if exeErr
+        send msg, row.text
     db.close()
