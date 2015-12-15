@@ -67,13 +67,13 @@ bot.command 'stats', (msg) ->
 
 bot.get /^\/(rnd|random)$/i, (msg) ->
   db = new sqlite.Database db_file
-  db.each "SELECT text FROM kindergarten "+
+  db.each "SELECT command, text FROM kindergarten "+
     "WHERE chat LIKE '"+msg.chat.id+"' "+
     "AND _ROWID_ >= (abs(random()) % (SELECT max(_ROWID_) FROM kindergarten)) "+
     "LIMIT 1",
     (exeErr, row) ->
       console.log exeErr if exeErr
-      send msg, row.text
+      send msg, "/"+row.command+" "+row.text
   db.close()
 
 bot.get /^\//, (msg) ->
