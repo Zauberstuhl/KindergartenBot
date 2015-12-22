@@ -36,7 +36,7 @@ bot.command 'help', (msg) ->
 
 bot.command 'add', (msg) ->
   if msg.text.match(/^\/add.+/i)
-    [_, command, text] = msg.text.match(/^\/add\s(\w+?)\s(.+?)$/)
+    [_, command, text] = msg.text.match(/^\/add\s([\w\d]+?)\s(.+?)$/)
     # check on existence
     unless command? and text?
       return
@@ -76,9 +76,9 @@ bot.get /^\/(rnd|random)$/i, (msg) ->
       send msg, "/"+row.command+" "+row.text
   db.close()
 
-bot.get /^\//, (msg) ->
+bot.get /^\/[\w\d]+$/, (msg) ->
   if msg.text.match(/^\//)
-    [_, command] = msg.text.match(/^\/(\w+)$/)
+    [_, command] = msg.text.match(/^\/([\w\d]+)$/)
     text = msg.text.replace('/','')
     db = new sqlite.Database db_file
     db.each "SELECT text FROM kindergarten WHERE command LIKE '"+
