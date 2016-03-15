@@ -4,7 +4,8 @@ File = require('telegram-api/types/File')
 
 sqlite = require('sqlite3')
 
-blacklist = ["help", "add", "list", "stats", "random"]
+debug = false
+blacklist = ["help", "add", "list", "stats", "random", "fixbot"]
 
 db_file = "kindergarten.db"
 db = new sqlite.Database db_file
@@ -35,6 +36,12 @@ bot.command 'help', (msg) ->
   send msg, help
 
 bot.command 'add', (msg) ->
+  console.log msg if debug
+  # node-sqlite has no utf8 support :(
+  if /[\u00C0-\u017F]+/.test(msg.text)
+    send msg, "Umlaute der Hurensohn!"
+    return
+
   if msg.text.match(/^\/add.+/i)
     [_, command, text] = msg.text.match(/^\/add\s([\w\d]+?)\s(.+?)$/)
     # check on existence
@@ -56,6 +63,7 @@ bot.command 'add', (msg) ->
     send msg, "New command '"+command+"' was added!"
 
 bot.command 'stats', (msg) ->
+  console.log msg if debug
   if msg.text.match(/^\/stats$/i)
     db = new sqlite.Database db_file
     db.each "SELECT count(*) as 'count' FROM kindergarten "+
@@ -66,6 +74,7 @@ bot.command 'stats', (msg) ->
     db.close()
 
 bot.get /^\/(rnd|random)$/i, (msg) ->
+  console.log msg if debug
   db = new sqlite.Database db_file
   db.each "SELECT command, text FROM kindergarten "+
     "WHERE chat LIKE '"+msg.chat.id+"' "+
@@ -77,6 +86,7 @@ bot.get /^\/(rnd|random)$/i, (msg) ->
   db.close()
 
 bot.get /^\/[\w\d]+$/, (msg) ->
+  console.log msg if debug
   if msg.text.match(/^\//)
     [_, command] = msg.text.match(/^\/([\w\d]+)$/)
     text = msg.text.replace('/','')
