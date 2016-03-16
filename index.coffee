@@ -38,7 +38,7 @@ bot.command 'help', (msg) ->
 bot.command 'add', (msg) ->
   console.log msg if debug
 
-  if msg.text.match(/^\/add.+/i)
+  if msg.text.match(/^\/add\s[\w\d]+\s.+$/i)
     [_, command, text] = msg.text.match(/^\/add\s([\w\d]+?)\s(.+?)$/)
     # check on existence
     unless command? and text?
@@ -49,14 +49,7 @@ bot.command 'add', (msg) ->
       send msg, command+" is black-listed. Abort!"
       return
 
-    # Danke Andy..
-    if command.match(/[äüöß\!"§\$\%\&\/\(\)\=\?\\,\.\-_\:;\]\+\*\~<>\|]+/i)
-      #send msg, "No special chars in the command name allowed!"
-      send msg, "Danke Andy.."
-      return
-
     # remove evil manu chars
-    command = command.replace /['"]/g, ""
     text = text.replace /['"]/g, ""
 
     db = new sqlite.Database db_file
