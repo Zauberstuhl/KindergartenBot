@@ -37,19 +37,22 @@ bot.command 'help', (msg) ->
 
 bot.command 'add', (msg) ->
   console.log msg if debug
-  # node-sqlite has no utf8 support :(
-  if /[\u00C0-\u017F]+/.test(msg.text)
-    send msg, "Umlaute der Hurensohn!"
-    return
 
   if msg.text.match(/^\/add.+/i)
     [_, command, text] = msg.text.match(/^\/add\s([\w\d]+?)\s(.+?)$/)
     # check on existence
     unless command? and text?
       return
+
     # blacklist
     if command in blacklist
       send msg, command+" is black-listed. Abort!"
+      return
+
+    # Danke Andy..
+    if command.match(/[äüöß\!"§\$\%\&\/\(\)\=\?\\,\.\-_\:;\]\+\*\~<>\|]+/i)
+      #send msg, "No special chars in the command name allowed!"
+      send msg, "Danke Andy.."
       return
 
     # remove evil manu chars
