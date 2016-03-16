@@ -5,7 +5,7 @@ File = require('telegram-api/types/File')
 sqlite = require('sqlite3')
 
 debug = false
-blacklist = ["help", "add", "list", "stats", "random", "fixbot"]
+blacklist = ["help", "add", "list", "stats", "random", "fixbot", "roll"]
 
 db_file = "kindergarten.db"
 db = new sqlite.Database db_file
@@ -72,6 +72,14 @@ bot.command 'stats', (msg) ->
         console.log exeErr if exeErr
         send msg, "There are/is "+row.count+" command(s) available!"
     db.close()
+
+bot.get /^\/roll.*$/, (msg) ->
+  console.log msg if debug
+  [min, max] = [1, 10]
+  if msg.text.match(/^\/roll\s(\d*)$/)
+    [_, max] = msg.text.match(/^\/roll\s(\d*)$/)
+  rand = Math.floor(Math.random() * (parseInt(max) - min) + min)
+  send msg, "You roll "+rand+"("+min+"-"+max+")"
 
 bot.get /^\/(rnd|random)$/i, (msg) ->
   console.log msg if debug
