@@ -101,3 +101,6 @@ bot.get /^\/[\w\d]+$/, (msg) ->
         console.log exeErr if exeErr
         send msg, row.text
     db.close()
+
+bot.get /^\/[^\w\d]+$/, (msg) ->
+  send msg, "Danke Andy.."
